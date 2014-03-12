@@ -69,6 +69,7 @@ static float eulerYawActual;
 static float eulerRollDesired;
 static float eulerPitchDesired;
 static float eulerYawDesired;
+static float eulerYawOptitrack;		// Non decommentare test in corso!!
 static float rollRateDesired;
 static float pitchRateDesired;
 static float yawRateDesired;
@@ -194,7 +195,7 @@ static void stabilizerTask(void* param)
 
     if (imu6IsCalibrated())
     {
-      commanderGetRPY(&eulerRollDesired, &eulerPitchDesired, &eulerYawDesired);
+      commanderGetRPY(&eulerRollDesired, &eulerPitchDesired, &eulerYawDesired, &eulerYawOptitrack);			// Non decommentare test in corso!!
       commanderGetRPYType(&rollType, &pitchType, &yawType);
 
       // 250HZ
@@ -202,6 +203,7 @@ static void stabilizerTask(void* param)
       {
         sensfusion6UpdateQ(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, FUSION_UPDATE_DT);
         sensfusion6GetEulerRPY(&eulerRollActual, &eulerPitchActual, &eulerYawActual);
+		eulerYawActual = eulerYawOptitrack;								//Non decommentare test in corso!!
 
         accWZ = sensfusion6GetAccZWithoutGravity(acc.x, acc.y, acc.z);
         accMAG = (acc.x*acc.x) + (acc.y*acc.y) + (acc.z*acc.z);

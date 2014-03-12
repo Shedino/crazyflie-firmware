@@ -41,7 +41,7 @@ void commanderInit(void);
 bool commanderTest(void);
 void commanderWatchdog(void);
 uint32_t commanderGetInactivityTime(void);
-void commanderGetRPY(float* eulerRollDesired, float* eulerPitchDesired, float* eulerYawDesired);
+void commanderGetRPY(float* eulerRollDesired, float* eulerPitchDesired, float* eulerYawDesired, float* eulerYawOptitrack);
 void commanderGetRPYType(RPYType* rollType, RPYType* pitchType, RPYType* yawType);
 void commanderGetThrust(uint16_t* thrust);
 void commanderGetAltHold(bool* altHold, bool* setAltHold, float* altHoldChange);
