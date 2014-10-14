@@ -229,6 +229,14 @@ void sensfusion6UpdateQ(float gx, float gy, float gz, float ax, float ay, float 
 }
 #endif
 
+void sensfusion6GetQUAT(float* qu0, float* qu1, float* qu2, float* qu3)
+{
+  *qu0 = q0;
+  *qu1 = q1;
+  *qu2 = q2;
+  *qu3 = q3;
+}
+
 void sensfusion6GetEulerRPY(float* roll, float* pitch, float* yaw)
 {
   float gx, gy, gz; // estimated gravity direction

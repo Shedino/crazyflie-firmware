@@ -42,7 +42,7 @@ struct CommanderCrtpValues
   float pitch;
   float yaw;
   uint16_t thrust;
-  float yaw_opti;			//non de-commentare test in corso!!
+  float yaw_opti;
 } __attribute__((packed));
 
 static struct CommanderCrtpValues targetVal[2];
@@ -118,14 +118,14 @@ uint32_t commanderGetInactivityTime(void)
   return xTaskGetTickCount() - lastUpdate;
 }
 
-void commanderGetRPY(float* eulerRollDesired, float* eulerPitchDesired, float* eulerYawDesired, float* eulerYawOptitrack)			// Non decommetare, test in corso!!
+void commanderGetRPY(float* eulerRollDesired, float* eulerPitchDesired, float* eulerYawDesired, float* eulerYawOptitrack)
 {
   int usedSide = side;
 
-  *eulerRollDesired  = targetVal[usedSide].roll;					
+  *eulerRollDesired  = targetVal[usedSide].roll;
   *eulerPitchDesired = targetVal[usedSide].pitch;
   *eulerYawDesired   = targetVal[usedSide].yaw;
-  *eulerYawOptitrack = targetVal[usedSide].yaw_opti;			// Non decommentare test in corso!!
+  *eulerYawOptitrack = targetVal[usedSide].yaw_opti;
 }
 
 void commanderGetAltHold(bool* altHold, bool* setAltHold, float* altHoldChange)

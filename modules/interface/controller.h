@@ -33,6 +33,13 @@
 void controllerInit(void);
 bool controllerTest(void);
 
+void controllerCorrectAttitudePIDTrue(
+       float q0Actual, float q1Actual, float q2Actual, float q3Actual,
+       float eulerRollDesired, float eulerPitchDesired, float eulerYawDesired,
+       float rollRateActual, float pitchRateActual, float yawRateActual,
+       float rollRateDesired, float pitchRateDesired, float yawRateDesired,
+       float rollRateDotDesired, float pitchRateDotDesired, float yawRateDotDesired);
+
 /**
  * Make the controller run an update of the attitude PID. The output is
  * the desired rate which should be fed into a rate controller. The

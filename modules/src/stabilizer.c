@@ -63,16 +63,26 @@ static Axis3f gyro; // Gyro axis data in deg/s
 static Axis3f acc;  // Accelerometer axis data in mG
 static Axis3f mag;  // Magnetometer axis data in testla
 
+static float q0Actual;
+static float q1Actual;
+static float q2Actual;
+static float q3Actual;
 static float eulerRollActual;
 static float eulerPitchActual;
 static float eulerYawActual;
 static float eulerRollDesired;
 static float eulerPitchDesired;
 static float eulerYawDesired;
-static float eulerYawOptitrack;		// Non decommentare test in corso!!
+static float eulerYawOptitrack;
 static float rollRateDesired;
 static float pitchRateDesired;
 static float yawRateDesired;
+static float rollRateDesired1=0.0;
+static float pitchRateDesired1=0.0;
+static float yawRateDesired1=0.0;
+static float rollRateDotDesired=0.0;
+static float pitchRateDotDesired=0.0;
+static float yawRateDotDesired=0.0;
 
 // Baro variables
 static float temperature; // temp from barometer
@@ -195,7 +205,7 @@ static void stabilizerTask(void* param)
 
     if (imu6IsCalibrated())
     {
-      commanderGetRPY(&eulerRollDesired, &eulerPitchDesired, &eulerYawDesired, &eulerYawOptitrack);			// Non decommentare test in corso!!
+      commanderGetRPY(&eulerRollDesired, &eulerPitchDesired, &eulerYawDesired, &eulerYawOptitrack);
       commanderGetRPYType(&rollType, &pitchType, &yawType);
 
       // 250HZ
@@ -203,12 +213,26 @@ static void stabilizerTask(void* param)
       {
         sensfusion6UpdateQ(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, FUSION_UPDATE_DT);
         sensfusion6GetEulerRPY(&eulerRollActual, &eulerPitchActual, &eulerYawActual);
-		eulerYawActual = eulerYawOptitrack;								//Non decommentare test in corso!!
+        sensfusion6GetQUAT(&q0Actual, &q1Actual, &q2Actual, &q3Actual);
+		eulerYawActual = eulerYawOptitrack;
+
 
         accWZ = sensfusion6GetAccZWithoutGravity(acc.x, acc.y, acc.z);
         accMAG = (acc.x*acc.x) + (acc.y*acc.y) + (acc.z*acc.z);
         // Estimate speed from acc (drifts)
         vSpeed += deadband(accWZ, vAccDeadband) * FUSION_UPDATE_DT;
+
+        eulerYawDesired+=eulerYawDesired*FUSION_UPDATE_DT;
+		
+		eulerRollDesired = eulerRollDesired * M_PI / 180.0;
+		eulerPitchDesired = eulerPitchDesired * M_PI / 180.0;
+		eulerYawDesired = eulerYawDesired * M_PI / 180.0;
+
+        controllerCorrectAttitudePIDTrue(q0Actual, q1Actual, q2Actual, q3Actual,
+                                     eulerRollDesired, eulerPitchDesired, eulerYawDesired,
+                                     gyro.x, -gyro.y, gyro.z,
+                                     rollRateDesired1, pitchRateDesired1, yawRateDesired1,
+                                     rollRateDotDesired, pitchRateDotDesired, yawRateDotDesired);
 
         controllerCorrectAttitudePID(eulerRollActual, eulerPitchActual, eulerYawActual,
                                      eulerRollDesired, eulerPitchDesired, -eulerYawDesired,
@@ -423,6 +447,13 @@ LOG_ADD(LOG_FLOAT, yaw, &eulerYawActual)
 LOG_ADD(LOG_UINT16, thrust, &actuatorThrust)
 LOG_GROUP_STOP(stabilizer)
 
+LOG_GROUP_START(ActualQuaternion)
+LOG_ADD(LOG_FLOAT, q0, &q0Actual)
+LOG_ADD(LOG_FLOAT, q1, &q1Actual)
+LOG_ADD(LOG_FLOAT, q2, &q2Actual)
+LOG_ADD(LOG_FLOAT, q3, &q3Actual)
+LOG_GROUP_STOP(ActualQuaternion)
+
 LOG_GROUP_START(acc)
 LOG_ADD(LOG_FLOAT, x, &acc.x)
 LOG_ADD(LOG_FLOAT, y, &acc.y)
@@ -437,10 +468,10 @@ LOG_ADD(LOG_FLOAT, y, &gyro.y)
 LOG_ADD(LOG_FLOAT, z, &gyro.z)
 LOG_GROUP_STOP(gyro)
 
-LOG_GROUP_START(mag)
-LOG_ADD(LOG_FLOAT, x, &mag.x)
-LOG_ADD(LOG_FLOAT, y, &mag.y)
-LOG_ADD(LOG_FLOAT, z, &mag.z)
+LOG_GROUP_START(eulerdesired)
+LOG_ADD(LOG_FLOAT, roll, &eulerRollDesired)
+LOG_ADD(LOG_FLOAT, pitch, &eulerPitchDesired)
+LOG_ADD(LOG_FLOAT, yaw, &eulerYawDesired)
 LOG_GROUP_STOP(mag)
 
 LOG_GROUP_START(motor)
@@ -449,6 +480,12 @@ LOG_ADD(LOG_INT32, m1, &motorPowerM1)
 LOG_ADD(LOG_INT32, m2, &motorPowerM2)
 LOG_ADD(LOG_INT32, m3, &motorPowerM3)
 LOG_GROUP_STOP(motor)
+
+LOG_GROUP_START(Torque)
+LOG_ADD(LOG_INT16, TorqueRoll, &actuatorRoll)
+LOG_ADD(LOG_INT16, TorquePitch, &actuatorPitch)
+LOG_ADD(LOG_INT16, TorqueYaw, &actuatorYaw)
+LOG_GROUP_STOP(Torque)
 
 // LOG altitude hold PID controller states
 LOG_GROUP_START(vpid)
@@ -474,6 +511,7 @@ LOG_ADD(LOG_FLOAT, vSpeed, &vSpeed)
 LOG_ADD(LOG_FLOAT, vSpeedASL, &vSpeedASL)
 LOG_ADD(LOG_FLOAT, vSpeedAcc, &vSpeedAcc)
 LOG_GROUP_STOP(altHold)
+
 
 // Params for altitude hold
 PARAM_GROUP_START(altHold)
